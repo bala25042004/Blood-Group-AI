@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Testing
+.pytest/
+.coverage
+htmlcov/
+
+# Documentation
+*.md
+docs/
+
+# Node
+node_modules/
+npm-debug.log
+package*.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Model files (will be downloaded at runtime)
+*.h5
+*.pkl
+
+# Miscellaneous
+.DS_Store
+Thumbs.db

@@ -34,3 +34,6 @@ qrcode==8.2
 # Plotting (used in training and report)
 matplotlib==3.10.7
 seaborn==0.13.2
+
+# Server
+gunicorn==23.0.0

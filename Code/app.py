@@ -70,6 +70,8 @@ def init_db():
             cursor.execute("ALTER TABLE users ADD COLUMN phone TEXT")
         if 'created_at' not in columns:
             cursor.execute("ALTER TABLE users ADD COLUMN created_at TIMESTAMP")
+        if 'login_provider' not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN login_provider TEXT")
         conn.commit()
 
 @app.before_request
@@ -96,6 +98,12 @@ def home():
     if 'user_id' not in session and 'username' not in session:
         return render_template('index.html')
     return render_template('index.html')
+
+# Standalone OTP page - send OTP to any phone number
+@app.route('/otp-only')
+def otp_only():
+    """Standalone OTP verification page - send to any number"""
+    return render_template('otp_only.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -239,9 +247,9 @@ def login():
                 session.permanent = True
             return redirect(url_for('home'))
         else:
-            return render_template('login_enhanced.html', error='Invalid username or password')
+            return render_template('login.html', error='Invalid username or password')
     
-    return render_template('login_enhanced.html')
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
