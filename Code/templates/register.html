@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+
+<style>
+    .auth-page {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, #0C1117 0%, #1a0a10 50%, #2d0a15 100%);
+        background-attachment: fixed;
+        background-size: cover;
+        position: relative;
+    }
+
+    .auth-page::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="30" fill="none" stroke="%23C1121F" opacity="0.05" stroke-width="1"/><circle cx="50" cy="50" r="20" fill="none" stroke="%23FFB703" opacity="0.04" stroke-width="0.5"/></svg>');
+        background-size: 200px 200px;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .auth-container {
+        width: 100%;
+        max-width: 450px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .auth-card {
+        background: rgba(22, 27, 34, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(193, 18, 31, 0.2);
+        border-radius: 1.5rem;
+        padding: 3rem 2.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .auth-card:hover {
+        border-color: rgba(193, 18, 31, 0.5);
+        box-shadow: 0 12px 40px rgba(193, 18, 31, 0.2);
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .auth-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+
+    .auth-subtitle {
+        color: #a0a0a0;
+        font-size: 0.95rem;
+    }
+
+    .logo-icon {
+        font-size: 3rem;
+        background: linear-gradient(135deg, #C1121F 0%, #FFB703 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        color: #d0d0d0;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(193, 18, 31, 0.2);
+        border-radius: 0.75rem;
+        color: #ffffff;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+    }
+
+    .form-input::placeholder {
+        color: #707090;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #C1121F;
+        background: rgba(193, 18, 31, 0.1);
+        box-shadow: 0 0 10px rgba(193, 18, 31, 0.2);
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #C1121F 0%, #780000 100%);
+        color: white;
+        border: 2px solid #FFB703;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(193, 18, 31, 0.4), 0 0 15px rgba(255, 183, 3, 0.3);
+    }
+
+    .submit-btn:hover::before {
+        left: 100%;
+    }
+
+    .error-message {
+        background: rgba(193, 18, 31, 0.2);
+        border: 1px solid #C1121F;
+        color: #ff9999;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-weight: 600;
+        display: none;
+    }
+
+    .error-message.show {
+        display: block;
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(193, 18, 31, 0.2);
+    }
+
+    .auth-footer-text {
+        color: #a0a0a0;
+        font-size: 0.95rem;
+    }
+
+    .auth-footer-link {
+        color: #FFB703;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .auth-footer-link:hover {
+        color: #C1121F;
+    }
+
+    .requirements {
+        background: rgba(255, 183, 3, 0.05);
+        border: 1px solid rgba(255, 183, 3, 0.2);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .requirement-item {
+        color: #b0b0b0;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .requirement-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .requirement-item i {
+        color: #FFB703;
+    }
+
+    @media (max-width: 768px) {
+        .auth-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .auth-title {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <span class="logo-icon"><i class="fas fa-user-plus"></i></span>
+                <h1 class="auth-title">Join Us Today</h1>
+                <p class="auth-subtitle">Create an account and start your blood group analysis</p>
+            </div>
+
+            <form action="{{ url_for('register') }}" method="post">
+                {% if error %}
+                <div class="error-message show">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        <i class="fas fa-user mr-2"></i>Username
+                    </label>
+                    <input type="text" id="username" name="username" class="form-input" placeholder="Choose a username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock mr-2"></i>Password
+                    </label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Create a strong password" required>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-user-check mr-2"></i>Create Account
+                </button>
+            </form>
+
+            <div class="requirements">
+                <div class="requirement-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span>HIPAA compliant data protection</span>
+                </div>
+                <div class="requirement-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Access medical AI analysis tools</span>
+                </div>
+                <div class="requirement-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Secure account credentials</span>
+                </div>
+            </div>
+
+            <div class="auth-footer">
+                <p class="auth-footer-text">
+                    Already have an account?
+                    <a href="{{ url_for('login') }}" class="auth-footer-link">Sign in here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

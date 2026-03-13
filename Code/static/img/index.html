@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0b2f;
+            color: #ffffff;
+        }
+
+        .menu-bg {
+            background-color: #383a48;
+        }
+
+        .hero-section {
+            background-color: #1a1a2e;
+            background-image: url("{{ url_for('static', filename='bg1.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            z-index: 1;
+            padding: 8rem 2rem;
+            width: 100%;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to right, rgba(12, 11, 47, 0.9) 30%, rgba(12, 11, 47, 0.5) 70%, rgba(12, 11, 47, 0) 100%);
+            z-index: -1;
+        }
+
+        .ai-service-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #ff00ff, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .icon-box {
+            color: #ff00ff;
+        }
+        
+        .learn-more-btn {
+            background: linear-gradient(to right, #ff00ff, #da00ff);
+            transition: all 0.3s ease;
+        }
+        .learn-more-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+    </style>
+
+    <!-- Hero Section -->
+    <header class="hero-section flex items-center justify-start relative z-0">
+        <div class="container mx-auto text-left relative z-10 max-w-2xl">
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-extrabold leading-tight mb-6">
+                Predicting Blood Group <br> for Healthier Lives
+            </h1>
+            <p class="text-lg md:text-xl font-semibold mb-4 gradient-text uppercase tracking-wider">
+                Non-Invasive Diagnostic Machine Learning
+            </p>
+            <p class="text-base md:text-lg text-gray-300 mb-8">
+                Our advanced system leverages machine learning to analyze various features from retinal fundus and sclera eye images. This innovative, non-invasive approach aims to identify and predict a person's blood group, offering a safe alternative to traditional blood tests.
+            </p>
+            <p class="text-base md:text-lg text-gray-300">
+                By identifying patterns in vascular and scleral features, we provide crucial insights that contribute to more secure and innovative healthcare diagnostics.
+            </p>
+        </div>
+    </header>
+
+    <!-- Our Prediction Capabilities Section -->
+    <section class="py-16 md:py-24 px-4 md:px-8 bg-gray-900 text-white">
+        <div class="container mx-auto text-center mb-12">
+            <p class="text-sm font-semibold uppercase text-gray-400 mb-2">Capabilities</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold text-white">Our Prediction Capabilities</h2>
+        </div>
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Service Card 1: Data Preprocessing -->
+            <div class="ai-service-card p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
+                <div class="icon-box text-5xl mb-4">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-3">DATA PREPROCESSING</h3>
+                <p class="text-gray-300 text-sm">
+                    We meticulously clean, transform, and prepare raw image data, ensuring optimal quality for robust machine learning model training.
+                </p>
+            </div>
+            <!-- Service Card 2: Feature Extraction -->
+            <div class="ai-service-card p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
+                <div class="icon-box text-5xl mb-4">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-3">FEATURE EXTRACTION</h3>
+                <p class="text-gray-300 text-sm">
+                    Our system extracts key features like vessel tortuosity and redness from fundus and sclera images using advanced algorithms.
+                </p>
+            </div>
+            <!-- Service Card 3: Blood Group Prediction -->
+            <div class="ai-service-card p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
+                <div class="icon-box text-5xl mb-4">
+                    <i class="fas fa-cloud"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-3">BLOOD GROUP PREDICTION</h3>
+                <p class="text-gray-300 text-sm">
+                    Utilizing a trained MLP model, we combine the extracted features to provide a prediction of the blood group.
+                </p>
+            </div>
+            <!-- Service Card 4: Training & Analysis -->
+            <div class="ai-service-card p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
+                <div class="icon-box text-5xl mb-4">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-3">TRAINING & ANALYSIS</h3>
+                <p class="text-gray-300 text-sm">
+                    Generate accuracy graphs, confusion matrices, and precision/recall reports to evaluate and improve the model's performance.
+                </p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Predictive Diagnostics and Health Insights Section -->
+    <section class="py-16 md:py-24 px-4 md:px-8 bg-gray-800 text-white">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Predictive Diagnostics Card -->
+            <div class="bg-white p-8 rounded-lg shadow-xl text-gray-800">
+                <h3 class="text-3xl font-bold mb-4">Predictive Diagnostics</h3>
+                <p class="text-gray-600 mb-6">
+                    Our predictions offer a new way to get quick blood group information, which is useful in emergencies or for proactive health management.
+                </p>
+                <ul class="mb-6 space-y-2">
+                    <li class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i> Non-invasive and rapid results
+                    </li>
+                    <li class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i> Enhanced emergency response
+                    </li>
+                    <li class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i> User-friendly and accessible
+                    </li>
+                </ul>
+                <button class="learn-more-btn text-white font-semibold py-3 px-6 rounded-lg shadow-md">
+                    VIEW DETAILS
+                </button>
+            </div>
+
+            <!-- Health Insights Card -->
+            <div class="bg-white p-8 rounded-lg shadow-xl text-gray-800">
+                <h3 class="text-3xl font-bold mb-4">Health Insights</h3>
+                <p class="text-gray-600 mb-6">
+                    Beyond just predicting the blood group, our system aids in comprehensive data analysis to understand the correlation between eye features and blood types.
+                </p>
+                <ul class="mb-6 space-y-2">
+                    <li class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i> Trend analysis of eye features
+                    </li>
+                    <li class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i> Data-driven diagnostic recommendations
+                    </li>
+                    <li class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i> Research-grade data analysis
+                    </li>
+                </ul>
+                <button class="learn-more-btn text-white font-semibold py-3 px-6 rounded-lg shadow-md">
+                    VIEW DETAILS
+                </button>
+            </div>
+        </div>
+    </section>
+{% endblock %}

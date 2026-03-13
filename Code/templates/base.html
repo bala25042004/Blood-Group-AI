@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - Non-Invasive Blood Group Classification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Poppins', 'Inter', sans-serif;
+        }
+
+        :root {
+            --medical-deep-red: #C1121F;
+            --medical-burgundy: #780000;
+            --medical-white: #F8F9FA;
+            --medical-gold: #FFB703;
+            --soft-gray: #E5E5E5;
+            --dark-bg: #0C1117;
+            --card-bg: #161B22;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0C1117 0%, #1a0a10 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            background-attachment: fixed;
+        }
+
+        /* Medical research theme background with retina/blood cell patterns */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="30" cy="30" r="2" fill="%23C1121F" opacity="0.1"/><circle cx="70" cy="70" r="2" fill="%23C1121F" opacity="0.08"/><circle cx="50" cy="20" r="1.5" fill="%23FFB703" opacity="0.05"/></svg>'),
+                radial-gradient(circle at 20% 50%, rgba(193, 18, 31, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(120, 0, 0, 0.1) 0%, transparent 50%);
+            background-size: 100px 100px, cover, cover;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background: rgba(12, 17, 23, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(193, 18, 31, 0.4);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #C1121F 0%, #FFB703 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+
+        nav a {
+            position: relative;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #A71C1C, #1E88E5);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        nav a:hover {
+            background: rgba(167, 28, 28, 0.2);
+        }
+
+        nav a:hover::after {
+            width: 80%;
+        }
+
+        .nav-logout-btn {
+            background: linear-gradient(135deg, #A71C1C 0%, #D82828 100%);
+            transition: all 0.3s ease;
+        }
+
+        .nav-logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(167, 28, 28, 0.4);
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(20, 24, 41, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(167, 28, 28, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(167, 28, 28, 0.5);
+            box-shadow: 0 8px 32px rgba(167, 28, 28, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: translateY(-4px);
+        }
+
+        /* Gradient Buttons */
+        .btn-medical {
+            background: linear-gradient(135deg, #A71C1C 0%, #D82828 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-medical::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-medical:hover::before {
+            left: 100%;
+        }
+
+        .btn-medical:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(167, 28, 28, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(30, 136, 229, 0.2);
+            border: 2px solid #1E88E5;
+            color: #1E88E5;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(30, 136, 229, 0.3);
+            box-shadow: 0 8px 20px rgba(30, 136, 229, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(167, 28, 28, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(167, 28, 28, 0.6);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .animate-glow {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .animate-slide {
+            animation: slideInLeft 0.8s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav .flex {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            nav a {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="px-4 md:px-8 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="logo">
+                <i class="fas fa-dna mr-2"></i>Blood Group AI
+            </div>
+            <div class="flex flex-wrap gap-2 md:gap-4">
+                <a href="{{ url_for('home') }}" class="px-3 py-2 rounded-md text-gray-300 hover:text-white transition">
+                    <i class="fas fa-home mr-1"></i>Home
+                </a>
+                {% if 'username' in session %}
+                <a href="{{ url_for('working') }}" class="px-3 py-2 rounded-md text-gray-300 hover:text-white transition">
+                    <i class="fas fa-flask mr-1"></i>How It Works
+                </a>
+                <a href="{{ url_for('ai_scanner') }}" class="px-3 py-2 rounded-md text-gray-300 hover:text-white transition">
+                    <i class="fas fa-scan mr-1"></i>AI Scanner
+                </a>
+                <button onclick="document.location='{{ url_for('logout') }}'" class="nav-logout-btn px-4 py-2 rounded-md transition">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                </button>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="px-3 py-2 rounded-md text-gray-300 hover:text-white transition">
+                    <i class="fas fa-sign-in-alt mr-1"></i>Login
+                </a>
+                <a href="{{ url_for('register') }}" class="px-3 py-2 rounded-md text-gray-300 hover:text-white transition">
+                    <i class="fas fa-user-plus mr-1"></i>Register
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-red-900/40 bg-gradient-to-b from-slate-900 to-slate-950 backdrop-blur-md px-4 md:px-8 py-8 mt-20">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-amber-400"><i class="fas fa-heartbeat mr-2"></i>Blood Group AI</h3>
+                    <p class="text-gray-400 text-sm">Non-invasive blood group classification using advanced AI and medical imaging analysis.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-rose-400"><i class="fas fa-shield-alt mr-2"></i>Technology</h3>
+                    <ul class="text-gray-400 text-sm space-y-2">
+                        <li><i class="fas fa-check text-amber-400 mr-2"></i>Deep Learning</li>
+                        <li><i class="fas fa-check text-amber-400 mr-2"></i>Medical Imaging</li>
+                        <li><i class="fas fa-check text-amber-400 mr-2"></i>AI Analysis</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-rose-400"><i class="fas fa-lock mr-2"></i>Privacy</h3>
+                    <p class="text-gray-400 text-sm">Your medical data is encrypted and processed securely with HIPAA compliance standards.</p>
+                </div>
+            </div>
+            <div class="border-t border-red-900/30 pt-6 text-center text-gray-400 text-sm">
+                <p>&copy; 2025 Non-Invasive Blood Group Classification System. All rights reserved.</p>
+                <p class="mt-2">Advanced AI Medical Research & Development</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

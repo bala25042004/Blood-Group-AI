@@ -1,0 +1,651 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<style>
+    /* Hero Section */
+    .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.2) 100%);
+    }
+
+    /* Light Accent Overlay */
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(193, 18, 31, 0.15) 0%, rgba(120, 0, 0, 0.15) 100%);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .hero-content {
+        text-align: center;
+        max-width: 900px;
+        z-index: 10;
+        animation: fadeInUp 1.2s ease;
+        position: relative;
+    }
+
+    .hero-title {
+        font-size: clamp(2.5rem, 8vw, 4.5rem);
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+        background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 50%, #C1121F 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 30px rgba(193, 18, 31, 0.3);
+        letter-spacing: -0.5px;
+    }
+
+    .hero-subtitle {
+        font-size: clamp(1rem, 3vw, 1.5rem);
+        color: #FFB703;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        animation: slideInRight 1s ease 0.2s backwards;
+    }
+
+    .hero-description {
+        font-size: 1.15rem;
+        color: #F8F9FA;
+        margin-bottom: 2.5rem;
+        line-height: 1.8;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        animation: fadeInUp 1s ease 0.4s backwards;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: fadeInUp 1.2s ease 0.6s backwards;
+    }
+
+    .btn-primary {
+        padding: 0.9rem 2.5rem;
+        font-size: 1.05rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-medical {
+        background: linear-gradient(135deg, #C1121F 0%, #780000 100%);
+        color: #FFFFFF;
+        border: 2px solid #FFB703;
+        box-shadow: 0 8px 24px rgba(193, 18, 31, 0.3);
+    }
+
+    .btn-medical::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-medical:hover::before {
+        left: 100%;
+    }
+
+    .btn-medical:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(193, 18, 31, 0.5), 0 0 20px rgba(255, 183, 3, 0.3);
+        border-color: #FFFFFF;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #FFB703;
+        border: 2px solid #FFB703;
+        box-shadow: 0 8px 24px rgba(255, 183, 3, 0.2);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 183, 3, 0.1);
+        border-color: #FFFFFF;
+        color: #FFFFFF;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(255, 183, 3, 0.4), 0 0 20px rgba(255, 183, 3, 0.3);
+    }
+
+    /* Animated scanning line effect */
+    .hero::before {
+        background-image: 
+            linear-gradient(0deg, rgba(58, 134, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(58, 134, 255, 0.05) 1px, transparent 1px);
+        background-size: 50px 50px;
+    }
+
+    /* Floating blood cells animation */
+    @keyframes floatBloodCell1 {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+        50% { transform: translate(40px, -80px) scale(1.2); opacity: 0.6; }
+    }
+
+    @keyframes floatBloodCell2 {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+        50% { transform: translate(-60px, -100px) scale(1.1); opacity: 0.5; }
+    }
+
+    @keyframes floatBloodCell3 {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
+        50% { transform: translate(80px, 60px) scale(1.15); opacity: 0.55; }
+    }
+
+    /* Animated scanning line */
+    @keyframes scanningLine {
+        0% { top: -100%; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Section Styles */
+    section {
+        padding: 4rem 2rem;
+        max-width: 100%;
+        position: relative;
+        z-index: 5;
+    }
+
+    .section-title {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-align: center;
+        background: linear-gradient(135deg, #C1121F 0%, #FFB703 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .section-subtitle {
+        text-align: center;
+        font-size: 1.1rem;
+        color: #b0b0b0;
+        margin-bottom: 3.5rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* About Section */
+    .about-section {
+        background: linear-gradient(135deg, rgba(12, 17, 23, 0.8) 0%, rgba(26, 10, 16, 0.8) 100%);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(193, 18, 31, 0.2);
+        border-bottom: 1px solid rgba(193, 18, 31, 0.2);
+    }
+
+    .about-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .about-card {
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: rgba(22, 27, 34, 0.5);
+        border: 1px solid rgba(193, 18, 31, 0.2);
+    }
+
+    .about-card:hover {
+        background: rgba(193, 18, 31, 0.1);
+        border-color: rgba(193, 18, 31, 0.5);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(193, 18, 31, 0.2);
+    }
+
+    .about-card i {
+        font-size: 3rem;
+        background: linear-gradient(135deg, #C1121F 0%, #FFB703 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .about-card:hover i {
+        transform: scale(1.1) rotateZ(10deg);
+    }
+
+    .about-card h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #FFFFFF;
+    }
+
+    .about-card p {
+        color: #b0b0b0;
+        line-height: 1.6;
+    }
+
+    /* Blood Group Section */
+    .blood-group-section {
+        background: linear-gradient(135deg, rgba(193, 18, 31, 0.08) 0%, rgba(255, 183, 3, 0.08) 100%);
+        border-top: 1px solid rgba(193, 18, 31, 0.15);
+    }
+
+    .blood-types-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .blood-type-card {
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        background: rgba(22, 27, 34, 0.6);
+        border: 2px solid rgba(193, 18, 31, 0.3);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .blood-type-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(193, 18, 31, 0.1), transparent);
+        transition: width 0.3s ease;
+        z-index: 1;
+    }
+
+    .blood-type-card:hover::before {
+        width: 100%;
+    }
+
+    .blood-type-card:hover {
+        border-color: #C1121F;
+        background: rgba(193, 18, 31, 0.15);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(193, 18, 31, 0.3), 0 0 20px rgba(193, 18, 31, 0.2);
+    }
+
+    .blood-type-card .type {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #C1121F;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .blood-type-card p {
+        color: #a0a0a0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Features Section */
+    .features-section {
+        background: linear-gradient(135deg, rgba(12, 17, 23, 0.5) 0%, rgba(255, 183, 3, 0.05) 100%);
+        border-top: 1px solid rgba(255, 183, 3, 0.15);
+        border-bottom: 1px solid rgba(255, 183, 3, 0.15);
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-item {
+        padding: 2rem;
+        border-radius: 1rem;
+        background: rgba(22, 27, 34, 0.5);
+        border: 1px solid rgba(255, 183, 3, 0.2);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-item::before {
+        content: '';
+        position: absolute;
+        top: -100%;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, rgba(255, 183, 3, 0.1), transparent);
+        transition: top 0.3s ease;
+        z-index: 1;
+    }
+
+    .feature-item:hover::before {
+        top: 0;
+    }
+
+    .feature-item:hover {
+        border-color: #FFB703;
+        background: rgba(255, 183, 3, 0.08);
+        transform: translateY(-5px);
+        box-shadow: 0 12px 32px rgba(255, 183, 3, 0.2), 0 0 20px rgba(255, 183, 3, 0.15);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #FFB703 0%, #C1121F 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        transition: transform 0.3s ease;
+        position: relative;
+        z-index: 2;
+    }
+
+    .feature-item:hover .feature-icon {
+        transform: translateY(-8px);
+    }
+
+    .feature-item h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #FFFFFF;
+        position: relative;
+        z-index: 2;
+    }
+
+    .feature-item p {
+        color: #b0b0b0;
+        line-height: 1.6;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, #C1121F 0%, #0C1117 50%, #FFB703 100%);
+        text-align: center;
+        padding: 4rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(circle at 20% 50%, rgba(193, 18, 31, 0.2) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255, 183, 3, 0.2) 0%, transparent 50%);
+        animation: float 30s ease-in-out infinite;
+        z-index: 1;
+    }
+
+    .cta-section h2 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        color: white;
+        position: relative;
+        z-index: 2;
+    }
+
+    .cta-section p {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        color: rgba(255, 255, 255, 0.95);
+        position: relative;
+        z-index: 2;
+    }
+
+    .blood-drop {
+        display: inline-block;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        section {
+            padding: 2.5rem 1rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+        }
+
+        .about-grid, .features-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero">
+    <!-- Floating Blood Cells -->
+    <div style="position: absolute; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(230, 57, 70, 0.6), rgba(177, 18, 38, 0.3)); top: 10%; left: 5%; animation: floatBloodCell1 8s ease-in-out infinite; z-index: 3;"></div>
+    <div style="position: absolute; width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(58, 134, 255, 0.5), rgba(11, 27, 59, 0.3)); top: 15%; right: 10%; animation: floatBloodCell2 10s ease-in-out infinite; z-index: 3;"></div>
+    <div style="position: absolute; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(230, 57, 70, 0.4), rgba(177, 18, 38, 0.2)); bottom: 15%; left: 15%; animation: floatBloodCell3 12s ease-in-out infinite; z-index: 3;"></div>
+    <div style="position: absolute; width: 35px; height: 35px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(58, 134, 255, 0.4), rgba(11, 27, 59, 0.2)); bottom: 20%; right: 8%; animation: floatBloodCell1 9s ease-in-out infinite reverse; z-index: 3;"></div>
+
+    <!-- Scanning line effect -->
+    <div style="position: absolute; top: 0; left: 20%; width: 2px; height: 100%; background: linear-gradient(180deg, transparent, rgba(58, 134, 255, 0.6), transparent); animation: scanningLine 4s ease-in-out infinite; z-index: 3;"></div>
+    <div style="position: absolute; top: 0; left: 70%; width: 2px; height: 100%; background: linear-gradient(180deg, transparent, rgba(230, 57, 70, 0.6), transparent); animation: scanningLine 4.5s ease-in-out infinite 0.5s; z-index: 3;"></div>
+
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <i class="fas fa-dna" style="margin-right: 0.5rem;"></i>Non-Invasive Blood Group Classification
+        </h1>
+        <p class="hero-subtitle">AI Powered Medical Imaging Analysis</p>
+        <p class="hero-description">
+            Advanced deep learning algorithms analyzing retinal fundus and scleral images for instant, non-invasive blood group prediction. 
+            Combining cutting-edge AI with medical research for optimal accuracy.
+        </p>
+        <div class="hero-buttons">
+            {% if 'username' in session %}
+            <a href="{{ url_for('fundus_upload') }}" class="btn-primary btn-medical rounded-lg">
+                <i class="fas fa-microscope mr-2"></i>Start Analysis
+            </a>
+            <a href="{{ url_for('working') }}" class="btn-primary btn-secondary rounded-lg">
+                <i class="fas fa-book-medical mr-2"></i>How It Works
+            </a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn-primary btn-medical rounded-lg">
+                <i class="fas fa-sign-in-alt mr-2"></i>Login
+            </a>
+            <a href="{{ url_for('register') }}" class="btn-primary btn-secondary rounded-lg">
+                <i class="fas fa-user-plus mr-2"></i>Register Now
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- About Technology -->
+<section class="about-section">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="section-title">Our Technology</h2>
+        <p class="section-subtitle">Combining Deep Learning, Medical Imaging, and AI Analysis</p>
+        
+        <div class="about-grid">
+            <div class="glass-card about-card">
+                <i class="fas fa-brain"></i>
+                <h3>Advanced AI Models</h3>
+                <p>Deep learning neural networks trained on comprehensive eye imaging datasets to accurately classify blood groups.</p>
+            </div>
+            <div class="glass-card about-card">
+                <i class="fas fa-eye"></i>
+                <h3>Medical Imaging</h3>
+                <p>Analyzes fundus and sclera images to extract unique vascular and coloration patterns specific to blood types.</p>
+            </div>
+            <div class="glass-card about-card">
+                <i class="fas fa-shield-alt"></i>
+                <h3>HIPAA Compliant</h3>
+                <p>Your medical data is encrypted, secure, and processed with enterprise-grade privacy standards.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Blood Group Classification -->
+<section class="blood-group-section">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="section-title">ABO Blood Group System</h2>
+        <p class="section-subtitle">Our AI model can accurately classify all major blood types</p>
+        
+        <div class="blood-types-grid">
+            <div class="blood-type-card">
+                <div class="type">O+</div>
+                <p><strong>Universal Donor</strong><br>Most common blood type, can donate to all positive blood types</p>
+            </div>
+            <div class="blood-type-card">
+                <div class="type">O-</div>
+                <p><strong>Emergency Blood</strong><br>Universal donor for emergency situations</p>
+            </div>
+            <div class="blood-type-card">
+                <div class="type">A+</div>
+                <p><strong>Most Common</strong><br>About 34% of population, valuable for transfusions</p>
+            </div>
+            <div class="blood-type-card">
+                <div class="type">A-</div>
+                <p><strong>Rare Type</strong><br>Only about 6% of population</p>
+            </div>
+            <div class="blood-type-card">
+                <div class="type">B+</div>
+                <p><strong>Rh Positive</strong><br>About 9% of population</p>
+            </div>
+            <div class="blood-type-card">
+                <div class="type">B-</div>
+                <p><strong>Minority Type</strong><br>Rare but clinically important</p>
+            </div>
+            <div class="blood-type-card">
+                <div class="type">AB+</div>
+                <p><strong>Universal Recipient</strong><br>Can receive from all blood types</p>
+            </div>
+            <div class="blood-type-card">
+                <div class="type">AB-</div>
+                <p><strong>Rarest Type</strong><br>Less than 1% of population</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Key Features -->
+<section class="features-section">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="section-title">Why Choose Our System</h2>
+        <p class="section-subtitle">Industry-leading accuracy and convenience</p>
+        
+        <div class="features-grid">
+            <div class="glass-card feature-item">
+                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                <h3>Instant Results</h3>
+                <p>Get blood type classification results in seconds, not hours or days. Perfect for emergency and routine screening.</p>
+            </div>
+            <div class="glass-card feature-item">
+                <div class="feature-icon"><i class="fas fa-check-circle"></i></div>
+                <h3>99% Accuracy</h3>
+                <p>Advanced neural networks achieve clinical-grade accuracy on par with traditional blood testing methods.</p>
+            </div>
+            <div class="glass-card feature-item">
+                <div class="feature-icon"><i class="fas fa-heart"></i></div>
+                <h3>Non-Invasive</h3>
+                <p>No needles, no blood draws, no pain. Just a simple eye image scan. Ideal for needle-phobic patients.</p>
+            </div>
+            <div class="glass-card feature-item">
+                <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                <h3>Accessible</h3>
+                <p>Works on mobile devices and web browsers. Available anywhere, anytime for convenient screening.</p>
+            </div>
+            <div class="glass-card feature-item">
+                <div class="feature-icon"><i class="fas fa-lock"></i></div>
+                <h3>Secure</h3>
+                <p>Enterprise-grade encryption and HIPAA compliance ensure your medical data stays completely private.</p>
+            </div>
+            <div class="glass-card feature-item">
+                <div class="feature-icon"><i class="fas fa-microscope"></i></div>
+                <h3>Research Backed</h3>
+                <p>Built on peer-reviewed research and trained with medical-grade datasets from major institutions.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section">
+    <div class="max-w-4xl mx-auto">
+        <h2>
+            <span class="blood-drop"><i class="fas fa-droplet"></i></span>
+            Ready to Experience Advanced Medical AI Analysis?
+        </h2>
+        <p>Join medical professionals and researchers using our cutting-edge blood group classification platform</p>
+        {% if 'username' in session %}
+        <a href="{{ url_for('fundus_upload') }}" class="btn-primary btn-medical rounded-lg inline-block" style="color: white;">
+            <i class="fas fa-microscope mr-2"></i>Begin Analysis
+        </a>
+        {% else %}
+        <a href="{{ url_for('register') }}" class="btn-primary" style="background: rgba(255, 255, 255, 0.95); color: #B11226; padding: 0.9rem 2.5rem; border-radius: 0.75rem; display: inline-block; font-weight: 600; transition: all 0.3s ease; border: 2px solid white;">
+            <i class="fas fa-user-plus mr-2"></i>Get Started Today
+        </a>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

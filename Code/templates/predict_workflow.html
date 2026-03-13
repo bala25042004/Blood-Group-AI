@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Scan & Predict{% endblock %}
+{% block content %}
+
+<style>
+    .workflow-container { max-width:900px; margin:3rem auto; }
+    .step { display:none; }
+    .step.active { display:block; }
+    .form-row { display:flex; gap:1rem; }
+    .form-row input, .form-row select { flex:1 }
+    .scanning-overlay { position: absolute; inset:0; background: rgba(0,0,0,0.65); display:flex; align-items:center; justify-content:center; flex-direction:column; color:#fff; display:none; z-index:50 }
+    .scanning-overlay.active { display:flex }
+    .scanner-line { width:80%; height:3px; background:linear-gradient(90deg, transparent, #FFB703, transparent); margin:1rem 0; animation: scan-animation 2s infinite alternate ease-in-out }
+    @keyframes scan-animation { from{transform:translateX(-30%)} to{transform:translateX(30%)} }
+    
+    select option {
+        background-color: #1f2937;
+        color: #ffffff;
+    }
+    
+    input, select {
+        color: #ffffff !important;
+    }
+</style>
+
+<div class="workflow-container glass-card p-6">
+    <h2 class="text-2xl font-bold mb-4">Prediction Workflow</h2>
+
+    <div id="step-1" class="step active">
+        <h3 class="font-semibold mb-2">Step 1 ƒ?" Patient Details</h3>
+        <div>
+            <label class="block mb-2">Name</label>
+            <input id="patient-name" class="w-full p-2 rounded bg-gray-800 border border-gray-700" />
+        </div>
+        <div class="form-row mt-3">
+            <div>
+                <label class="block mb-2">Age</label>
+                <input id="patient-age" type="number" min="0" class="w-full p-2 rounded bg-gray-800 border border-gray-700" />
+            </div>
+            <div>
+                <label class="block mb-2">Gender</label>
+                <select id="patient-gender" class="w-full p-2 rounded bg-gray-800 border border-gray-700">
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
+        </div>
+        <div class="mt-4">
+            <button id="btn-next-to-fundus" class="btn-medical px-4 py-2">Next</button>
+        </div>
+    </div>
+
+    <div id="step-2" class="step">
+        <h3 class="font-semibold mb-2">Step 2 ƒ?" Fundus Image</h3>
+        <p class="text-sm text-gray-300">Upload fundus image and click <strong>Extract Features</strong>.</p>
+        <input id="fundus-file" type="file" accept="image/*" class="mt-3" />
+        <div class="mt-3">
+            <button id="btn-extract-fundus" class="btn-medical px-4 py-2">Extract Features</button>
+            <button id="btn-back-to-1" class="btn-secondary px-4 py-2 ml-2">Back</button>
+        </div>
+    </div>
+
+    <div id="step-3" class="step">
+        <h3 class="font-semibold mb-2">Step 3 ƒ?" Scleral Image</h3>
+        <p class="text-sm text-gray-300">Upload scleral image and click <strong>Extract Features</strong>.</p>
+        <input id="sclera-file" type="file" accept="image/*" class="mt-3" />
+        <div class="mt-3">
+            <button id="btn-extract-sclera" class="btn-medical px-4 py-2">Extract Features</button>
+            <button id="btn-back-to-2" class="btn-secondary px-4 py-2 ml-2">Back</button>
+        </div>
+    </div>
+
+    <div id="step-4" class="step">
+        <h3 class="font-semibold mb-2">Step 4 ƒ?" Prediction</h3>
+        <p class="text-sm text-gray-300">After feature extraction you can run prediction and download the report.</p>
+        <div class="mt-3">
+            <button id="btn-run-predict" class="btn-medical px-4 py-2">Run Prediction</button>
+            <a id="download-link" href="#" class="btn-secondary px-4 py-2 ml-2 hidden">Download Report (PDF)</a>
+        </div>
+        <div id="prediction-result" class="mt-4 text-lg font-bold"></div>
+    </div>
+
+    <div id="scanning-overlay" class="scanning-overlay">
+        <p class="text-xl"><i class="fas fa-microscope mr-2"></i>Scanning and extracting features...</p>
+        <div class="scanner-line"></div>
+    </div>
+</div>
+
+<script>
+    const showStep = (n) => {
+        document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+        document.getElementById('step-'+n).classList.add('active');
+    }
+
+    const overlay = document.getElementById('scanning-overlay');
+    const showOverlay = (on) => overlay.classList.toggle('active', on);
+
+    document.getElementById('btn-next-to-fundus').addEventListener('click', async ()=>{
+        const name = document.getElementById('patient-name').value.trim();
+        const age = document.getElementById('patient-age').value.trim();
+        const gender = document.getElementById('patient-gender').value.trim();
+        if(!name || !age || !gender){ alert('Please fill all patient details'); return; }
+        const res = await fetch('/save_patient',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,age,gender})});
+        const data = await res.json();
+        if(data.success) showStep(2); else alert(data.message||'Failed');
+    });
+
+    document.getElementById('btn-back-to-1').addEventListener('click', ()=> showStep(1));
+    document.getElementById('btn-back-to-2').addEventListener('click', ()=> showStep(2));
+
+    document.getElementById('btn-extract-fundus').addEventListener('click', async ()=>{
+        const file = document.getElementById('fundus-file').files[0];
+        if(!file) { alert('Please select fundus image'); return; }
+        const fd = new FormData(); fd.append('image', file);
+        showOverlay(true);
+        try{
+            const res = await fetch('/fundus_upload',{method:'POST', body: fd});
+            const data = await res.json();
+            showOverlay(false);
+            if(data.success){
+                alert('Fundus features extracted');
+                showStep(3);
+            } else {
+                alert(data.error||data.message||'Extraction failed');
+            }
+        }catch(e){ showOverlay(false); alert('Upload failed: '+e); }
+    });
+
+    document.getElementById('btn-extract-sclera').addEventListener('click', async ()=>{
+        const file = document.getElementById('sclera-file').files[0];
+        if(!file) { alert('Please select sclera image'); return; }
+        const fd = new FormData(); fd.append('image', file);
+        showOverlay(true);
+        try{
+            const res = await fetch('/sclera_upload',{method:'POST', body: fd});
+            const data = await res.json();
+            showOverlay(false);
+            if(data.success){
+                alert('Sclera features extracted');
+                showStep(4);
+            } else {
+                alert(data.error||data.message||'Extraction failed');
+            }
+        }catch(e){ showOverlay(false); alert('Upload failed: '+e); }
+    });
+
+    document.getElementById('btn-run-predict').addEventListener('click', async ()=>{
+        const btn = document.getElementById('btn-run-predict');
+        btn.disabled = true; btn.innerText = 'Predicting...';
+        const res = await fetch('/predict_ajax');
+        const data = await res.json();
+        btn.disabled = false; btn.innerText = 'Run Prediction';
+        if(data.success){
+            document.getElementById('prediction-result').innerText = 'Predicted Blood Group: ' + data.predicted_blood_group;
+            const dl = document.getElementById('download-link');
+            dl.href = '/download_report'; dl.classList.remove('hidden');
+        } else {
+            alert(data.message||'Prediction failed');
+        }
+    });
+</script>
+
+{% endblock %}

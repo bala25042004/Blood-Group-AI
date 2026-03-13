@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+{% block title %}How It Works{% endblock %}
+{% block content %}
+
+<style>
+    .working-page {
+        min-height: calc(100vh - 120px);
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.2) 100%);
+        background-attachment: fixed;
+        position: relative;
+    }
+
+
+
+    .working-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3.5rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #C1121F 0%, #FFB703 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-description {
+        font-size: 1.1rem;
+        color: #a0a0a0;
+        max-width: 700px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    /* Workflow Section */
+    .workflow-section {
+        margin-bottom: 4rem;
+    }
+
+    .section-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #ffffff;
+    }
+
+    .section-subtitle {
+        font-size: 1rem;
+        color: #a0a0a0;
+        margin-bottom: 2rem;
+    }
+
+    .workflow-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .step-card {
+        background: rgba(22, 27, 34, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(193, 18, 31, 0.2);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .step-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(193, 18, 31, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .step-card:hover {
+        border-color: rgba(193, 18, 31, 0.5);
+        box-shadow: 0 12px 40px rgba(193, 18, 31, 0.2);
+        transform: translateY(-4px);
+    }
+
+    .step-card:hover::before {
+        top: -30%;
+        right: -30%;
+    }
+
+    .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #C1121F 0%, #780000 100%);
+        border-radius: 50%;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+        border: 2px solid #FFB703;
+    }
+
+    .step-icon {
+        font-size: 2.5rem;
+        color: #FFB703;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-description {
+        color: #b0b0b0;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Features Grid */
+    .features-section {
+        margin-top: 4rem;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .feature-item {
+        background: rgba(22, 27, 34, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 183, 3, 0.2);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .feature-item:hover {
+        border-color: rgba(255, 183, 3, 0.5);
+        background: rgba(255, 183, 3, 0.1);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(255, 183, 3, 0.2);
+    }
+
+    .feature-icon {
+        font-size: 2rem;
+        color: #FFB703;
+        margin-bottom: 1rem;
+    }
+
+    .feature-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.75rem;
+    }
+
+    .feature-description {
+        color: #b0b0b0;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    /* Technology Stack */
+    .tech-stack {
+        background: linear-gradient(135deg, rgba(193, 18, 31, 0.1) 0%, rgba(255, 183, 3, 0.1) 100%);
+        border: 1px solid rgba(193, 18, 31, 0.2);
+        border-radius: 1.5rem;
+        padding: 3rem 2rem;
+        margin-top: 4rem;
+    }
+
+    .tech-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .tech-item {
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    .tech-icon {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #C1121F 0%, #FFB703 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+
+    .tech-name {
+        color: #d0d0d0;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 1.8rem;
+        }
+
+        .workflow-steps {
+            grid-template-columns: 1fr;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tech-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="working-page">
+    <div class="working-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title"><i class="fas fa-flask mr-3"></i>How It Works</h1>
+            <p class="page-description">
+                This system predicts your blood group using advanced AI analysis of retinal fundus and sclera images. 
+                Completely non-invasive, fast, and accurate.
+            </p>
+        </div>
+
+        <!-- Workflow Section -->
+        <div class="workflow-section">
+            <h2 class="section-title"><i class="fas fa-cogs text-red-500 mr-2"></i>AI Analysis Pipeline</h2>
+            <p class="section-subtitle">Our intelligent system follows a sophisticated 8-step process</p>
+            
+            <div class="workflow-steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-icon"><i class="fas fa-upload"></i></div>
+                    <h3 class="step-title">Image Acquisition</h3>
+                    <p class="step-description">Upload high-quality retinal fundus and sclera images through the secure web interface.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-icon"><i class="fas fa-image"></i></div>
+                    <h3 class="step-title">Preprocessing</h3>
+                    <p class="step-description">Images are automatically resized, normalized, and enhanced to remove noise and improve clarity.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-icon"><i class="fas fa-microscope"></i></div>
+                    <h3 class="step-title">Feature Extraction</h3>
+                    <p class="step-description">Advanced algorithms extract 10 unique vascular and color-based features from the images.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <div class="step-icon"><i class="fas fa-puzzle-piece"></i></div>
+                    <h3 class="step-title">Feature Fusion</h3>
+                    <p class="step-description">Fundus and sclera features are combined into a comprehensive feature vector for analysis.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <div class="step-icon"><i class="fas fa-brain"></i></div>
+                    <h3 class="step-title">AI Model Analysis</h3>
+                    <p class="step-description">Deep learning neural networks process the feature vector through multiple layers.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">6</div>
+                    <div class="step-icon"><i class="fas fa-magic"></i></div>
+                    <h3 class="step-title">Classification</h3>
+                    <p class="step-description">The model outputs a confidence score for each blood group type.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">7</div>
+                    <div class="step-icon"><i class="fas fa-chart-bar"></i></div>
+                    <h3 class="step-title">Prediction</h3>
+                    <p class="step-description">The highest confidence blood group is selected as the final prediction.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">8</div>
+                    <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3 class="step-title">Result Display</h3>
+                    <p class="step-description">The predicted blood group is displayed with analysis metrics and extracted features.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features-section">
+            <h2 class="section-title"><i class="fas fa-sliders-h text-blue-400 mr-2"></i>Extracted Features</h2>
+            <p class="section-subtitle">10 unique metrics used for accurate blood group classification</p>
+            
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-eye"></i></div>
+                    <h3 class="feature-title">Vessel Density</h3>
+                    <p class="feature-description">Proportion of blood vessel pixels in the retinal image.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-wave-square"></i></div>
+                    <h3 class="feature-title">Vessel Tortuosity</h3>
+                    <p class="feature-description">Measures the curvature complexity of retinal blood vessels.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-circle-half-stroke"></i></div>
+                    <h3 class="feature-title">Optic Disc Diameter</h3>
+                    <p class="feature-description">Size of the optic nerve head in the fundus image.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-sun"></i></div>
+                    <h3 class="feature-title">Macula Brightness</h3>
+                    <p class="feature-description">Average pixel intensity in the macula region.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-fingerprint"></i></div>
+                    <h3 class="feature-title">Retinal Ridge Count</h3>
+                    <p class="feature-description">Ridge patterns indicating vascular branching complexity.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-palette"></i></div>
+                    <h3 class="feature-title">Sclera Redness Index</h3>
+                    <p class="feature-description">Measures blood vessel visibility in the sclera.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-texture"></i></div>
+                    <h3 class="feature-title">Sclera Texture</h3>
+                    <p class="feature-description">Brightness variation indicating vessel prominence.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-droplet"></i></div>
+                    <h3 class="feature-title">Pigmentation Index</h3>
+                    <p class="feature-description">Color balance influenced by oxygenation levels.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-user"></i></div>
+                    <h3 class="feature-title">Demographic Data</h3>
+                    <p class="feature-description">Age and health metrics for personalized analysis.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-dna"></i></div>
+                    <h3 class="feature-title">Vascular Profile</h3>
+                    <p class="feature-description">Comprehensive blood vessel pattern analysis.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technology Stack -->
+        <div class="tech-stack">
+            <h2 class="tech-title"><i class="fas fa-code mr-2"></i>Advanced Technology Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <div class="tech-icon"><i class="fas fa-brain"></i></div>
+                    <p class="tech-name">Deep Learning (TensorFlow)</p>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-icon"><i class="fas fa-image"></i></div>
+                    <p class="tech-name">Computer Vision (OpenCV)</p>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-icon"><i class="fas fa-chart-line"></i></div>
+                    <p class="tech-name">ML Models (Scikit-learn)</p>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-icon"><i class="fas fa-database"></i></div>
+                    <p class="tech-name">Data Processing (Pandas)</p>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-icon"><i class="fas fa-server"></i></div>
+                    <p class="tech-name">Web Framework (Flask)</p>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-icon"><i class="fas fa-lock"></i></div>
+                    <p class="tech-name">HIPAA Compliant (Encryption)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

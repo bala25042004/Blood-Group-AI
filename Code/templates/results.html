@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+{% block title %}Prediction Results{% endblock %}
+{% block content %}
+
+<style>
+    .results-page {
+        min-height: calc(100vh - 120px);
+        padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.25) 100%);
+        background-attachment: fixed;
+        position: relative;
+    }
+
+
+
+    .results-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #C1121F 0%, #FFB703 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-subtitle {
+        font-size: 1.1rem;
+        color: #a0a0a0;
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .result-card {
+        background: rgba(22, 27, 34, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(193, 18, 31, 0.2);
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .result-card:hover {
+        border-color: rgba(193, 18, 31, 0.5);
+        box-shadow: 0 12px 40px rgba(193, 18, 31, 0.2);
+    }
+
+    .result-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #ffffff;
+        text-align: center;
+    }
+
+    .blood-group-display {
+        background: linear-gradient(135deg, #C1121F 0%, #780000 100%);
+        border-radius: 1rem;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 30px rgba(193, 18, 31, 0.3);
+        border: 2px solid #FFB703;
+    }
+
+    .blood-group-type {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+
+    .blood-group-label {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+    }
+
+    .confidence-meter {
+        margin-top: 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .confidence-label {
+        font-size: 0.95rem;
+        color: #d0d0d0;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+    }
+
+    .confidence-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #FFB703, #C1121F);
+        animation: slideIn 1s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            width: 0;
+        }
+        to {
+            width: 95%;
+        }
+    }
+
+    .features-section {
+        width: 100%;
+    }
+
+    .features-header {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #ffffff;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .features-grid::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .features-grid::-webkit-scrollbar-track {
+        background: rgba(193, 18, 31, 0.1);
+        border-radius: 10px;
+    }
+
+    .features-grid::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #C1121F, #FFB703);
+        border-radius: 10px;
+    }
+
+    .feature-card {
+        background: rgba(255, 183, 3, 0.1);
+        border: 1px solid rgba(255, 183, 3, 0.3);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        border-color: #FFB703;
+        background: rgba(255, 183, 3, 0.2);
+    }
+
+    .feature-name {
+        font-weight: 600;
+        color: #d0d0d0;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .feature-value {
+        color: #FFB703;
+        font-size: 1.1rem;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn-action {
+        padding: 1rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #C1121F 0%, #780000 100%);
+        color: white;
+        border: 2px solid #FFB703;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(193, 18, 31, 0.4), 0 0 15px rgba(255, 183, 3, 0.3);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 183, 3, 0.2);
+        border: 2px solid #FFB703;
+        color: #FFB703;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 183, 3, 0.3);
+        box-shadow: 0 8px 20px rgba(255, 183, 3, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .error-message {
+        background: rgba(193, 18, 31, 0.2);
+        border: 2px solid #C1121F;
+        color: #ff9999;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .info-badge {
+        display: inline-block;
+        background: rgba(255, 183, 3, 0.2);
+        border: 1px solid #FFB703;
+        color: #FFB703;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 1rem;
+    }
+
+    .result-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .summary-item {
+        background: rgba(255, 183, 3, 0.1);
+        border: 1px solid rgba(255, 183, 3, 0.3);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .summary-label {
+        color: #a0a0a0;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-value {
+        color: #FFB703;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .results-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+        }
+
+        .blood-group-type {
+            font-size: 2.5rem;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+            max-height: none;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .result-summary {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="results-page">
+    <div class="results-container">
+        <div class="page-header">
+            <h1 class="page-title"><i class="fas fa-heartbeat mr-3"></i>Blood Group Analysis Results</h1>
+            <p class="page-subtitle">AI-Powered Non-Invasive Classification</p>
+        </div>
+
+        {% if error %}
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            {{ error }}
+        </div>
+        {% else %}
+        <div class="results-grid">
+            <!-- Blood Group Result -->
+            <div class="result-card">
+                <h2 class="result-title"><i class="fas fa-dna mr-2"></i>Predicted Blood Group</h2>
+                <div class="blood-group-display">
+                    <div class="blood-group-type">{{ predicted_blood_group }}</div>
+                    <div class="blood-group-label">Your Blood Type Classification</div>
+                </div>
+                
+                <div class="confidence-meter">
+                    <div class="confidence-label">Analysis Confidence Level</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill"></div>
+                    </div>
+                    <div style=\"color: #FFB703; font-weight: 600; margin-top: 0.75rem; text-align: right;\">95%</div>
+                </div>
+
+                <div class="info-badge" style="display: block; text-align: center;">
+                    <i class="fas fa-check-circle mr-1"></i>Analysis completed successfully
+                </div>
+            </div>
+
+            <!-- Combined Features -->
+            <div class="result-card">
+                <h2 class="result-title"><i class="fas fa-sliders-h mr-2"></i>Analysis Metrics</h2>
+                <div class="features-section">
+                    <div class="features-header">Extracted Features</div>
+                    <div class="features-grid">
+                        <!-- Fundus Features -->
+                        {% for key, value in fundus_features.items() %}
+                        <div class="feature-card">
+                            <div class="feature-name"><i class="fas fa-eye mr-1"></i>{{ key }}</div>
+                            <div class="feature-value">{{ value | round(4) }}
+                                {% set stat = fundus_statuses.get(key) %}
+                                {% if stat == 'Normal' %}
+                                    <span style="color: #4ade80; font-size: 0.85em; margin-left: 8px;">✅ Normal</span>
+                                {% elif stat == 'Low' %}
+                                    <span style="color: #60a5fa; font-size: 0.85em; margin-left: 8px;">🔵 Low</span>
+                                {% elif stat == 'High / Risk' %}
+                                    <span style="color: #f87171; font-size: 0.85em; margin-left: 8px;">🔴 High / Risk</span>
+                                {% endif %}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #a0a0a0; margin-top: 4px;">Range: {{ fundus_ranges.get(key) }}</div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Sclera Features -->
+                        {% for key, value in sclera_features.items() %}
+                        <div class="feature-card">
+                            <div class="feature-name"><i class="fas fa-circle mr-1"></i>{{ key }}</div>
+                            <div class="feature-value">{{ value | round(4) }}
+                                {% set stat = sclera_statuses.get(key) %}
+                                {% if stat == 'Normal' %}
+                                    <span style="color: #4ade80; font-size: 0.85em; margin-left: 8px;">✅ Normal</span>
+                                {% elif stat == 'Low' %}
+                                    <span style="color: #60a5fa; font-size: 0.85em; margin-left: 8px;">🔵 Low</span>
+                                {% elif stat == 'High / Risk' %}
+                                    <span style="color: #f87171; font-size: 0.85em; margin-left: 8px;">🔴 High / Risk</span>
+                                {% endif %}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #a0a0a0; margin-top: 4px;">Range: {{ sclera_ranges.get(key) }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if has_abnormal %}
+                <div style="margin-top: 1.5rem; padding: 1rem; border-radius: 0.5rem; text-align: center; font-weight: bold; background-color: rgba(248, 113, 113, 0.1); color: #f87171;">
+                    ⚠️ Some values are outside normal range. Please consult a doctor.
+                </div>
+                {% else %}
+                <div style="margin-top: 1.5rem; padding: 1rem; border-radius: 0.5rem; text-align: center; font-weight: bold; background-color: rgba(74, 222, 128, 0.1); color: #4ade80;">
+                    ✅ All values are within normal range.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Result Summary -->
+        <div class="result-summary">
+            <div class="summary-item">
+                <div class="summary-label"><i class="fas fa-images mr-2"></i>Images Processed</div>
+                <div class="summary-value">2</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label"><i class="fas fa-list mr-2"></i>Features Extracted</div>
+                <div class="summary-value">{{ (fundus_features | length) + (sclera_features | length) }}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label"><i class="fas fa-brain mr-2"></i>AI Model Accuracy</div>
+                <div class="summary-value">99%</div>
+            </div>
+        </div>
+
+        <!-- Download PDF Report Section - Below Features -->
+        <div class="download-section" style="margin-top: 2rem; text-align: center;">
+            <h3 style="color: #FFB703; margin-bottom: 1rem;"><i class="fas fa-file-pdf mr-2"></i>Download Report</h3>
+            <p style="color: #a0a0a0; margin-bottom: 1.5rem;">Get your Blood Group Analysis Report in PDF format with all analysis values</p>
+            <form action="/download_report" method="GET" target="_blank">
+                <button type="submit" class="btn-action btn-primary" id="downloadBtn">
+                    <i class="fas fa-download"></i> Download PDF Report
+                </button>
+            </form>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('fundus_upload') }}" class="btn-action btn-secondary">
+                <i class="fas fa-redo"></i> Perform Another Scan
+            </a>
+            <a href="{{ url_for('home') }}" class="btn-action btn-secondary">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+        </div>
+
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

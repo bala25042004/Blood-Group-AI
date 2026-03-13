@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Train Model{% endblock %}
+{% block content %}
+<style>
+    body {
+        background-image: url("{{ url_for('static', filename='img/bg7.png') }}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    .content-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 160px);
+        padding: 2rem;
+    }
+    .merged-card {
+        display: flex;
+        flex-wrap: wrap;
+        border-radius: 1rem;
+        overflow: hidden; /* Makes them look merged */
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        max-width: 1000px;
+        width: 100%;
+    }
+    .training-image {
+        flex: 1;
+        min-width: 300px;
+    }
+    .training-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .tri-color-form {
+        flex: 1;
+        background-image: linear-gradient(to right, rgba(0, 163, 255, 0.9), rgba(255, 79, 129, 0.9), rgba(0, 200, 83, 0.9));
+        backdrop-filter: blur(8px);
+        padding: 2rem;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .tri-color-form label {
+        color: white;
+        font-weight: 600;
+    }
+    .tri-color-form input[type="file"] {
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        border: none;
+    }
+    .tri-color-form button {
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid white;
+        color: white;
+        font-weight: bold;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    .tri-color-form button:hover {
+        background: white;
+        color: #333;
+    }
+</style>
+
+<div class="content-wrapper">
+    <div class="merged-card">
+        <!-- Left: Training Image -->
+        <div class="training-image">
+            <img src="{{ url_for('static', filename='img/training.png') }}" alt="Training Illustration">
+        </div>
+
+        <!-- Right: Training Form -->
+        <div class="tri-color-form">
+            <h2 class="text-2xl font-bold mb-4 text-center">Model Retraining</h2>
+            <p class="mb-4 text-center">
+                Upload a new dataset (CSV file) to retrain the model. This will generate updated accuracy graphs and a confusion matrix.
+            </p>
+            <form id="train-form" class="space-y-4">
+                <div>
+                    <label for="dataset">Upload Dataset</label>
+                    <input type="file" id="dataset" name="dataset" accept=".csv" required>
+                </div>
+                <button type="submit" class="w-full">
+                    Start Retraining
+                </button>
+            </form>
+            <div id="status-message" class="mt-4 text-sm text-center"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('train-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const statusMessage = document.getElementById('status-message');
+    const form = e.target;
+    const formData = new FormData(form);
+
+    statusMessage.textContent = 'Training started. Please wait...';
+    statusMessage.className = 'mt-4 text-sm text-gray-200 text-center';
+
+    try {
+        const response = await fetch("{{ url_for('train_model') }}", {
+            method: 'POST',
+            body: formData,
+        });
+        const result = await response.json();
+        if (response.ok) {
+            statusMessage.textContent = result.message;
+            statusMessage.className = 'mt-4 text-sm text-green-300 text-center';
+        } else {
+            statusMessage.textContent = result.error || 'An error occurred during training.';
+            statusMessage.className = 'mt-4 text-sm text-red-300 text-center';
+        }
+    } catch (error) {
+        statusMessage.textContent = 'An error occurred. Please check the server console.';
+        statusMessage.className = 'mt-4 text-sm text-red-300 text-center';
+    }
+});
+</script>
+{% endblock %}

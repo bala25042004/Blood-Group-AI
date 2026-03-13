@@ -1,0 +1,794 @@
+{% extends "base.html" %}
+{% block title %}Fundus Scan{% endblock %}
+{% block content %}
+
+<style>
+    .scan-page {
+        min-height: calc(100vh - 120px);
+        padding: 3rem 2rem;
+           background: linear-gradient(135deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.2) 100%);
+           position: relative;
+    }
+
+
+
+    .scan-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .patient-card {
+        background: rgba(22, 27, 34, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 183, 3, 0.2);
+        border-radius: 1.25rem;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .patient-card h3 {
+        color: #ffffff;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+
+    .patient-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    .patient-card label {
+        color: #d0d0d0;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-weight: 500;
+    }
+
+    .patient-card input {
+        width: 100%;
+        padding: 0.75rem 0.9rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(255, 183, 3, 0.25);
+        background: rgba(25, 25, 35, 0.7);
+        color: #e5e5e5;
+    }
+
+    .patient-card select {
+        width: 100%;
+        padding: 0.75rem 0.9rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(255, 183, 3, 0.25);
+        background: #1a1b26;
+        color: #e5e5e5;
+        cursor: pointer;
+    }
+
+    .patient-card select option {
+        background: #1a1b26;
+        color: #ffffff;
+        padding: 8px;
+    }
+
+    .patient-card input:focus,
+    .patient-card select:focus {
+        outline: none;
+        border-color: #FFB703;
+    }
+
+    .patient-actions {
+        margin-top: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .patient-status {
+        color: #9ae6b4;
+        font-weight: 600;
+        display: none;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #C1121F 0%, #FFB703 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-subtitle {
+        font-size: 1.1rem;
+        color: #b0b0b0;
+    }
+
+    .scan-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    .image-section {
+        position: relative;
+    }
+
+    .image-preview-container {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(193, 18, 31, 0.1) 0%, rgba(255, 183, 3, 0.1) 100%);
+        border: 2px solid rgba(193, 18, 31, 0.3);
+        box-shadow: 0 12px 40px rgba(193, 18, 31, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .image-preview-container:hover {
+        border-color: #C1121F;
+        box-shadow: 0 16px 48px rgba(193, 18, 31, 0.3);
+    }
+
+    .fundus-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 1.5rem;
+    }
+
+    #preview-placeholder {
+        position: absolute;
+        color: #707090;
+        text-align: center;
+        font-size: 1rem;
+    }
+
+    .image-label {
+        margin-top: 1.5rem;
+        text-align: center;
+        color: #a0a0a0;
+        font-size: 0.95rem;
+    }
+
+    /* Scanning overlay */
+    .scanning-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        color: white;
+        text-align: center;
+        transition: opacity 0.3s ease-in-out;
+        opacity: 0;
+        pointer-events: none;
+        border-radius: 1.5rem;
+    }
+
+    .scanning-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid #C1121F;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1.5rem;
+    }
+
+    .scanner-line {
+        position: absolute;
+        width: 80%;
+        height: 3px;
+        background: linear-gradient(to right, transparent, #C1121F, transparent);
+        box-shadow: 0 0 15px rgba(193, 18, 31, 0.7);
+        animation: scan-animation 2s infinite alternate ease-in-out;
+        border-radius: 5px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes scan-animation {
+        0% { top: 10%; }
+        100% { top: 90%; }
+    }
+
+    .scanning-text {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .form-section {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-card {
+        background: rgba(22, 27, 34, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(193, 18, 31, 0.2);
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-card:hover {
+        border-color: rgba(193, 18, 31, 0.5);
+        box-shadow: 0 12px 40px rgba(193, 18, 31, 0.2);
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #FFFFFF;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.75rem;
+        color: #d0d0d0;
+        font-weight: 500;
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        border: 2px dashed rgba(193, 18, 31, 0.4);
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        background: rgba(193, 18, 31, 0.05);
+        cursor: pointer;
+    }
+
+    .file-input-wrapper:hover {
+        border-color: #C1121F;
+        background: rgba(193, 18, 31, 0.15);
+    }
+
+    #fundus-file-input {
+        display: none !important;
+        visibility: hidden;
+        width: 0;
+        height: 0;
+        position: absolute;
+    }
+
+    .file-input-text {
+        color: #a0a0a0;
+        text-align: center;
+    }
+
+    .file-input-text i {
+        font-size: 2.5rem;
+        color: #C1121F;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #C1121F 0%, #780000 100%);
+        color: white;
+        font-weight: 600;
+        font-size: 1.05rem;
+        padding: 1rem 2rem;
+        border: 2px solid #FFB703;
+        border-radius: 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(193, 18, 31, 0.4), 0 0 15px rgba(255, 183, 3, 0.3);
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .submit-btn:hover:not(:disabled)::before {
+        left: 100%;
+    }
+
+    .error-message {
+        background: rgba(193, 18, 31, 0.2);
+        border: 1px solid #C1121F;
+        color: #ff9999;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-top: 1rem;
+        display: none;
+        font-size: 0.95rem;
+    }
+
+    .error-message.show {
+        display: block;
+    }
+
+    .features-section {
+        margin-top: 2rem;
+        display: none;
+    }
+
+    .features-section.show {
+        display: block;
+    }
+
+    .features-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #FFFFFF;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-card {
+        background: rgba(255, 183, 3, 0.1);
+        border: 1px solid rgba(255, 183, 3, 0.3);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        border-color: #FFB703;
+        background: rgba(255, 183, 3, 0.2);
+    }
+
+    .feature-name {
+        font-weight: 600;
+        color: #d0d0d0;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-value {
+        color: #FFB703;
+        font-size: 1.1rem;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+    }
+
+    .next-button {
+        background: linear-gradient(135deg, #C1121F 0%, #780000 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 0.75rem;
+        text-align: center;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+        width: 100%;
+        text-decoration: none;
+        border: 2px solid #FFB703;
+        cursor: pointer;
+    }
+
+    .next-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(193, 18, 31, 0.4), 0 0 15px rgba(255, 183, 3, 0.3);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .scan-wrapper {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-card {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<div class="scan-page">
+    <div class="scan-container">
+        <div class="page-header">
+            <h1 class="page-title"><i class="fas fa-eye mr-3"></i>Fundus Image Scan</h1>
+            <p class="page-subtitle">Upload a high-quality retinal fundus image for AI-powered blood group analysis</p>
+        </div>
+
+        <!-- Patient Details -->
+        <div class="patient-card">
+            <h3><i class="fas fa-user-md mr-2"></i>Patient Details (Required)</h3>
+            <div class="patient-grid">
+                <div>
+                    <label for="patient-name">Name</label>
+                    <input id="patient-name" type="text" placeholder="Enter full name" required>
+                </div>
+                <div>
+                    <label for="patient-age">Age</label>
+                    <input id="patient-age" type="number" min="0" placeholder="Age" required>
+                </div>
+                <div>
+                    <label for="patient-gender">Gender</label>
+                    <select id="patient-gender" required>
+                        <option value="">Select</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="patient-actions">
+                <button id="save-patient-btn" class="submit-btn" style="width:auto; max-width:260px;">
+                    <i class="fas fa-save mr-2"></i>Save & Continue to Scan
+                </button>
+                <span id="patient-status" class="patient-status"><i class="fas fa-check-circle mr-1"></i>Details saved. Continue to fundus scan.</span>
+            </div>
+        </div>
+
+        <div id="scan-section" style="display:none;">
+            <div class="scan-wrapper">
+                <!-- Image Preview Section -->
+                <div class="image-section">
+                    <div class="image-preview-container">
+                        <img src="{{ url_for('static', filename='img/fundus.png') }}" alt="Fundus Sample" class="fundus-img" id="image-display">
+                        <p id="preview-placeholder" class="absolute text-center">
+                            <i class="fas fa-image text-3xl mb-2 block opacity-30"></i>
+                            Fundus Image Preview
+                        </p>
+                        <div id="scanning-overlay" class="scanning-overlay">
+                            <div class="spinner"></div>
+                            <p class="scanning-text"><i class="fas fa-microscope mr-2"></i>Analyzing Image...</p>
+                            <div class="scanner-line"></div>
+                        </div>
+                    </div>
+                    <p class="image-label">
+                        <i class="fas fa-info-circle mr-2"></i>High-quality fundus image for optimal accuracy
+                    </p>
+                </div>
+
+                <!-- Form Section -->
+                <div class="form-section">
+                    <div class="form-card">
+                        <h2 class="form-title"><i class="fas fa-upload mr-2"></i>Upload Fundus Image</h2>
+                        
+                        <form id="fundus-upload-form" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label class="form-label">Select Retinal Fundus Image</label>
+                                <div class="file-input-wrapper" onclick="document.getElementById('fundus-file-input').click()">
+                                    <div class="file-input-text">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p><strong>Click to upload</strong> or drag & drop</p>
+                                        <p style="font-size: 0.85rem; margin-top: 0.5rem;">PNG, JPG, JPEG (max 10MB)</p>
+                                    </div>
+                                    <input type="file" id="fundus-file-input" name="image" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="extract-features-btn" class="submit-btn">
+                                <i class="fas fa-magic mr-2"></i>Extract Features
+                            </button>
+                        </form>
+
+                        <div id="ajax-error-message" class="error-message"></div>
+
+                        <!-- Extracted Features Display -->
+                        <div id="extracted-features-display" class="features-section">
+                            <h3 class="features-title"><i class="fas fa-check-circle text-amber-400 mr-2"></i>Analysis Complete</h3>
+                            <div class="features-grid" id="features-list"></div>
+                            
+                            <a href="{{ url_for('sclera_upload') }}" class="next-button">
+                                <i class="fas fa-arrow-right mr-2"></i>Next: Upload Sclera Image
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const savePatientBtn = document.getElementById('save-patient-btn');
+    const patientStatus = document.getElementById('patient-status');
+    const patientNameInput = document.getElementById('patient-name');
+    const patientAgeInput = document.getElementById('patient-age');
+    const patientGenderSelect = document.getElementById('patient-gender');
+    const scanSection = document.getElementById('scan-section');
+
+    function enableScanningUI() {
+        scanSection.style.display = 'block';
+        patientStatus.style.display = 'inline-flex';
+    }
+
+    savePatientBtn.addEventListener('click', async function() {
+        const name = patientNameInput.value.trim();
+        const age = patientAgeInput.value.trim();
+        const gender = patientGenderSelect.value.trim();
+
+        if (!name || !age || !gender) {
+            alert('Please fill all patient details before continuing.');
+            return;
+        }
+
+        try {
+            const res = await fetch('{{ url_for("save_patient") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, age, gender })
+            });
+            const data = await res.json();
+            if (data.success) {
+                enableScanningUI();
+            } else {
+                alert(data.message || 'Unable to save patient details.');
+            }
+        } catch (err) {
+            alert('Error saving patient details. Please try again.');
+        }
+    });
+
+    const fileInput = document.getElementById('fundus-file-input');
+    const imageDisplay = document.getElementById('image-display');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
+    const uploadForm = document.getElementById('fundus-upload-form');
+    const scanningOverlay = document.getElementById('scanning-overlay');
+    const extractFeaturesBtn = document.getElementById('extract-features-btn');
+    const extractedFeaturesDisplay = document.getElementById('extracted-features-display');
+    const featuresList = document.getElementById('features-list');
+    const errorMessageDiv = document.getElementById('ajax-error-message');
+
+    function showErrorMessage(message) {
+        errorMessageDiv.textContent = message;
+        errorMessageDiv.classList.add('show');
+    }
+
+    function hideErrorMessage() {
+        errorMessageDiv.classList.remove('show');
+    }
+
+    function stopScanning() {
+        scanningOverlay.classList.remove('active');
+        extractFeaturesBtn.disabled = false;
+        extractFeaturesBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Extract Features';
+    }
+
+    // File input change handler
+    fileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png'];
+            if (!validTypes.includes(file.type)) {
+                showErrorMessage('Please upload a JPG or PNG image.');
+                fileInput.value = '';
+                return;
+            }
+            
+            // Validate file size (10MB max)
+            if (file.size > 10 * 1024 * 1024) {
+                showErrorMessage('File size must be less than 10MB.');
+                fileInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imageDisplay.src = e.target.result;
+                previewPlaceholder.style.display = 'none';
+                extractedFeaturesDisplay.classList.remove('show');
+                hideErrorMessage();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imageDisplay.src = "{{ url_for('static', filename='img/fundus.png') }}";
+            previewPlaceholder.style.display = 'block';
+        }
+    });
+
+    // Form submission handler
+    uploadForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        hideErrorMessage();
+        extractedFeaturesDisplay.classList.remove('show');
+
+        // Check if file is selected
+        if (!fileInput.files || fileInput.files.length === 0) {
+            showErrorMessage('Please select an image first.');
+            return;
+        }
+
+        scanningOverlay.classList.add('active');
+        extractFeaturesBtn.disabled = true;
+        extractFeaturesBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+
+        fetch("{{ url_for('fundus_upload') }}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Upload failed: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            // Display processed image
+            const processedImg = new Image();
+            
+            const renderFeatures = () => {
+                stopScanning();
+                // Display features
+                featuresList.innerHTML = '';
+                let hasAbnormal = false;
+                Object.entries(data.features).forEach(([key, value]) => {
+                    const kn = key.toUpperCase();
+                    let status = 'Normal';
+                    let rangeText = '';
+                    if (kn.includes('AVR')) {
+                        status = value < 0.60 ? 'Low' : (value > 0.75 ? 'High / Risk' : 'Normal');
+                        rangeText = '0.60 – 0.75';
+                    } else if (kn.includes('TORTUOSITY')) {
+                        status = value < 1.0 ? 'Low' : (value > 1.15 ? 'High / Risk' : 'Normal');
+                        rangeText = '1.0 – 1.15';
+                    } else if (kn.includes('VESSEL_DENSITY')) {
+                        status = value < 0.30 ? 'Low' : (value > 0.60 ? 'High / Risk' : 'Normal');
+                        rangeText = '0.30 – 0.60';
+                    } else if (kn.includes('VESSEL_REDNESS') || kn.includes('REDNESS')) {
+                        status = value < 40 ? 'Low' : (value > 100 ? 'High / Risk' : 'Normal');
+                        rangeText = '40 – 100';
+                    } else if (kn.includes('CNN_PCA1')) {
+                        status = value < -1.0 ? 'Low' : (value > 1.0 ? 'High / Risk' : 'Normal');
+                        rangeText = '-1.0 – 1.0';
+                    }
+                    if (status !== 'Normal') hasAbnormal = true;
+
+                    let statusHtml = '';
+                    if (status === 'Normal') statusHtml = '<span style="color: #4ade80; font-size: 0.85em; margin-left: 8px;">✅ Normal</span>';
+                    else if (status === 'Low') statusHtml = '<span style="color: #60a5fa; font-size: 0.85em; margin-left: 8px;">🔵 Low</span>';
+                    else if (status === 'High / Risk') statusHtml = '<span style="color: #f87171; font-size: 0.85em; margin-left: 8px;">🔴 High / Risk</span>';
+
+                    const featureCard = document.createElement('div');
+                    featureCard.className = 'feature-card';
+                    featureCard.innerHTML = `
+                        <div class="feature-name">${key.replace(/_/g, ' ').toUpperCase()}</div>
+                        <div class="feature-value">${typeof value === 'number' ? value.toFixed(4) : value}${statusHtml}</div>
+                        <div style="font-size: 0.8rem; color: #a0a0a0; margin-top: 4px;">Range: ${rangeText}</div>
+                    `;
+                    featuresList.appendChild(featureCard);
+                });
+                
+                // Add summary
+                const summaryDiv = document.createElement('div');
+                summaryDiv.style.gridColumn = '1 / -1';
+                summaryDiv.style.marginTop = '1rem';
+                summaryDiv.style.padding = '1rem';
+                summaryDiv.style.borderRadius = '0.5rem';
+                summaryDiv.style.textAlign = 'center';
+                summaryDiv.style.fontWeight = 'bold';
+                
+                if (hasAbnormal) {
+                    summaryDiv.style.backgroundColor = 'rgba(248, 113, 113, 0.1)';
+                    summaryDiv.style.color = '#f87171';
+                    summaryDiv.innerHTML = '⚠️ Some values are outside normal range. Please consult a doctor.';
+                } else {
+                    summaryDiv.style.backgroundColor = 'rgba(74, 222, 128, 0.1)';
+                    summaryDiv.style.color = '#4ade80';
+                    summaryDiv.innerHTML = '✅ All values are within normal range.';
+                }
+                featuresList.appendChild(summaryDiv);
+                extractedFeaturesDisplay.classList.add('show');
+            };
+
+            processedImg.onload = function() {
+                imageDisplay.src = processedImg.src;
+                renderFeatures();
+            };
+            
+            processedImg.onerror = function() {
+                renderFeatures();
+            };
+            processedImg.src = data.processed_image_path;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorMessage(error.message || 'Upload failed. Please try again.');
+            stopScanning();
+        });
+    });
+
+    // Drag and drop support
+    const dropZone = document.querySelector('.file-input-wrapper');
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = 'rgba(193, 18, 31, 0.25)';
+        dropZone.style.borderColor = '#C1121F';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.backgroundColor = 'rgba(193, 18, 31, 0.05)';
+        dropZone.style.borderColor = 'rgba(193, 18, 31, 0.4)';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = 'rgba(193, 18, 31, 0.05)';
+        dropZone.style.borderColor = 'rgba(193, 18, 31, 0.4)';
+        
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+        }
+    });
+});
+</script>
+
+{% endblock %}

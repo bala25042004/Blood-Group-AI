@@ -1,0 +1,70 @@
+# ============================================================
+# Blood Eye Project — .gitignore
+# Files listed here are NOT uploaded to GitHub
+# ============================================================
+
+# --- Python Cache ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.pyc
+
+# --- Virtual Environments (do NOT share these) ---
+.venv/
+.venv312/
+venv/
+env/
+ENV/
+
+# --- Environment / Secrets (NEVER share .env) ---
+.env
+
+# --- Model & Training Artifacts (too large for Git) ---
+*.h5
+*.pkl
+*.pth
+*.joblib
+
+# --- Database files ---
+*.db
+*.sqlite3
+*.sqlite
+
+# --- Jupyter Notebook checkpoints ---
+.ipynb_checkpoints/
+*.ipynb
+
+# --- Uploaded images (user data — not shared) ---
+static/uploads/
+uploads/
+
+# --- Temporary / Test files ---
+test.pdf
+test_report.pdf
+*.tmp
+
+# --- Training output images (regenerated on train) ---
+accuracy_loss_graphs.png
+confusion_matrix.png
+feature_pairplot.png
+
+# --- Dataset (large file — share separately) ---
+Dataset.csv
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- IDE settings ---
+.vscode/
+.idea/
+*.code-workspace
+
+# --- Tools folder (optional dev scripts) ---
+tools/
+
+# --- Report samples (not needed in repo) ---
+Report sample/

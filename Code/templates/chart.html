@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+{% block title %}Analysis Dashboard{% endblock %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.0.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #0c0b2f;
+        color: #ffffff;
+    }
+
+    .dashboard-container {
+        padding: 2rem;
+        background: linear-gradient(to bottom, #1a1a2e, #0c0b2f);
+        min-height: calc(100vh - 8rem);
+    }
+
+    .chart-container-wrapper {
+        background-color: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        height: 400px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        overflow-x: auto;
+    }
+
+    .chart-container-wrapper canvas {
+        max-height: 100%;
+        width: 100%;
+    }
+
+    .section-heading {
+        color: #00ffff;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+        text-align: center;
+    }
+
+    .chart-title {
+        color: #ffffff;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="container mx-auto mt-8">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white text-center mb-12">Blood Group Feature Analysis</h1>
+
+        <!-- Retinal Features Section -->
+        <section class="mb-12">
+            <h2 class="section-heading">Retinal Fundus Image Features</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="chart-container-wrapper">
+                    <h3 class="chart-title">Blood Groups by CNN PCA1 Score</h3>
+                    <canvas id="cnnPcaChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3 class="chart-title">Blood Groups by AVR</h3>
+                    <canvas id="avrChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3 class="chart-title">Blood Groups by Vessel Redness</h3>
+                    <canvas id="vesselRednessChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3 class="chart-title">Blood Groups by AV Saturation Difference</h3>
+                    <canvas id="avSatDiffChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper lg:col-span-2">
+                    <h3 class="chart-title">Blood Groups by Tortuosity</h3>
+                    <canvas id="tortuosityChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sclera Features Section -->
+        <section class="mb-12">
+            <h2 class="section-heading">Sclera Eye Image Features</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="chart-container-wrapper">
+                    <h3 class="chart-title">Blood Groups by Sclera Mean Hue</h3>
+                    <canvas id="scleraHueChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3 class="chart-title">Blood Groups by Sclera Redness</h3>
+                    <canvas id="scleraRednessChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3 class="chart-title">Blood Groups by Vessel Density</h3>
+                    <canvas id="vesselDensityChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3 class="chart-title">Blood Groups by Perivascular Contrast</h3>
+                    <canvas id="perivascularChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper lg:col-span-2">
+                    <h3 class="chart-title">Blood Groups by Pulse Standard Deviation</h3>
+                    <canvas id="pulseStdChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    // Helper function to generate gradient colors
+    function getGradient(ctx, chartArea, colorStart, colorEnd) {
+        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+        gradient.addColorStop(0, colorStart);
+        gradient.addColorStop(1, colorEnd);
+        return gradient;
+    }
+
+    // Dummy data for charts (replace with real data from your model/database)
+    const bloodGroupLabels = ['A+', 'B+', 'AB+', 'O+', 'A-', 'B-'];
+
+    const cnnPcaData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'CNN PCA1 Score',
+            data: [0.5, 0.2, 0.8, -0.3, 0.6, -0.1],
+            backgroundColor: [],
+            borderColor: 'rgba(0, 255, 255, 0.5)',
+            borderWidth: 1,
+            borderRadius: 5,
+        }]
+    };
+
+    const avrData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'AVR',
+            data: [0.95, 1.05, 0.85, 1.1, 0.98, 1.12],
+            backgroundColor: [],
+            borderColor: 'rgba(255, 0, 255, 0.5)',
+            borderWidth: 1,
+            fill: true,
+        }]
+    };
+
+    const vesselRednessData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'Vessel Redness',
+            data: [120, 150, 90, 110, 130, 160],
+            backgroundColor: [],
+            borderColor: 'rgba(0, 255, 255, 0.5)',
+            borderWidth: 1,
+        }]
+    };
+    
+    const avSatDiffData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'AV Saturation Difference',
+            data: [10, 8, 12, 5, 9, 7],
+            backgroundColor: [],
+            borderColor: 'rgba(255, 0, 255, 0.5)',
+            borderWidth: 1,
+        }]
+    };
+    
+    const tortuosityData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'Tortuosity',
+            data: [1.5, 1.2, 1.8, 1.4, 1.6, 1.9],
+            backgroundColor: [],
+            borderColor: 'rgba(0, 255, 255, 0.5)',
+            borderWidth: 1,
+            fill: true,
+        }]
+    };
+    
+    const scleraHueData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'Sclera Mean Hue',
+            data: [250, 300, 220, 280, 240, 310],
+            backgroundColor: [],
+            borderColor: 'rgba(255, 0, 255, 0.5)',
+            borderWidth: 1,
+        }]
+    };
+    
+    const scleraRednessData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'Sclera Redness',
+            data: [180, 200, 160, 210, 170, 220],
+            backgroundColor: [],
+            borderColor: 'rgba(0, 255, 255, 0.5)',
+            borderWidth: 1,
+        }]
+    };
+    
+    const vesselDensityData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'Vessel Density',
+            data: [0.15, 0.18, 0.12, 0.2, 0.16, 0.19],
+            backgroundColor: [],
+            borderColor: 'rgba(255, 0, 255, 0.5)',
+            borderWidth: 1,
+        }]
+    };
+    
+    const perivascularData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'Perivascular Contrast',
+            data: [0.4, 0.6, 0.3, 0.7, 0.5, 0.8],
+            backgroundColor: [],
+            borderColor: 'rgba(0, 255, 255, 0.5)',
+            borderWidth: 1,
+        }]
+    };
+    
+    const pulseStdData = {
+        labels: bloodGroupLabels,
+        datasets: [{
+            label: 'Pulse STD',
+            data: [0.02, 0.03, 0.01, 0.04, 0.025, 0.035],
+            backgroundColor: [],
+            borderColor: 'rgba(255, 0, 255, 0.5)',
+            borderWidth: 1,
+        }]
+    };
+
+    // Chart Options (consistent theme)
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#ffffff',
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(12, 11, 47, 0.9)',
+                titleColor: '#00ffff',
+                bodyColor: '#ffffff',
+                borderColor: '#00ffff',
+                borderWidth: 1,
+                cornerRadius: 8,
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    color: '#a0aec0',
+                    font: {
+                        size: 12
+                    }
+                },
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)',
+                    drawBorder: false,
+                }
+            },
+            y: {
+                ticks: {
+                    color: '#a0aec0',
+                    font: {
+                        size: 12
+                    }
+                },
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)',
+                    drawBorder: false,
+                }
+            }
+        }
+    };
+
+    // Function to create a chart
+    function createChart(chartId, type, data, options) {
+        const ctx = document.getElementById(chartId).getContext('2d');
+        const chart = new Chart(ctx, {
+            type: type,
+            data: data,
+            options: options
+        });
+
+        // Apply gradients after chart is initialized and rendered
+        chart.options.onResize = function(chart, size) {
+            applyGradients(chart);
+        };
+        applyGradients(chart);
+    }
+
+    function applyGradients(chart) {
+        const chartArea = chart.chartArea;
+        if (!chartArea) return;
+
+        const datasets = chart.data.datasets;
+        datasets.forEach(dataset => {
+            // Bar charts use a different gradient logic
+            if (chart.config.type === 'bar') {
+                dataset.backgroundColor = dataset.data.map(() => getGradient(chart.ctx, chartArea, 'rgba(0, 255, 255, 0.8)', 'rgba(255, 0, 255, 0.8)'));
+            } else if (chart.config.type === 'line') {
+                dataset.backgroundColor = getGradient(chart.ctx, chartArea, 'rgba(0, 255, 255, 0.4)', 'rgba(255, 0, 255, 0.4)');
+                dataset.borderColor = 'rgba(0, 255, 255, 1)';
+            } else if (chart.config.type === 'pie' || chart.config.type === 'doughnut') {
+                const colors = ['#00ffff', '#ff00ff', '#8a2be2', '#00ff7f', '#ffff00', '#ff4500'];
+                dataset.backgroundColor = dataset.data.map((d, i) => colors[i % colors.length]);
+                dataset.hoverBackgroundColor = dataset.backgroundColor.map(c => c + 'cc'); // Lighter on hover
+            }
+        });
+        chart.update();
+    }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Retinal Fundus Features
+        createChart('cnnPcaChart', 'bar', cnnPcaData, commonOptions);
+        createChart('avrChart', 'line', avrData, commonOptions);
+        createChart('vesselRednessChart', 'bar', vesselRednessData, commonOptions);
+        createChart('avSatDiffChart', 'pie', avSatDiffData, { ...commonOptions, scales: {} }); // Pie chart has no scales
+        createChart('tortuosityChart', 'line', tortuosityData, commonOptions);
+
+        // Sclera Features
+        createChart('scleraHueChart', 'bar', scleraHueData, commonOptions);
+        createChart('scleraRednessChart', 'doughnut', scleraRednessData, { ...commonOptions, scales: {} }); // Doughnut has no scales
+        createChart('vesselDensityChart', 'bar', vesselDensityData, commonOptions);
+        createChart('perivascularChart', 'line', perivascularData, commonOptions);
+        createChart('pulseStdChart', 'bar', pulseStdData, commonOptions);
+    });
+</script>
+{% endblock %}

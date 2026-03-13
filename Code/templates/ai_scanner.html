@@ -1,0 +1,564 @@
+{% extends "base.html" %}
+{% block title %}Medical AI Scanner - Dashboard{% endblock %}
+{% block content %}
+
+<style>
+    :root {
+        --primary: #C1121F;
+        --primary-glow: rgba(193, 18, 31, 0.4);
+        --secondary: #FFB703;
+        --secondary-glow: rgba(255, 183, 3, 0.4);
+        --dark-bg: #080c16;
+        --glass: rgba(22, 27, 34, 0.85);
+        --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .scanner-page {
+        min-height: calc(100vh - 120px);
+        padding: 4rem 2rem;
+        background: radial-gradient(circle at 10% 10%, #1a0a0d 0%, #080c16 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Grid Overlay */
+    .scanner-page::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 50px 50px;
+        pointer-events: none;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Step Timeline */
+    .timeline {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+
+    .timeline::after {
+        content: '';
+        position: absolute;
+        top: 25px;
+        left: 5%;
+        right: 5%;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+        z-index: -1;
+    }
+
+    .time-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 20%;
+        gap: 0.75rem;
+    }
+
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--glass);
+        border: 2px solid var(--glass-border);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #666;
+        transition: all 0.4s ease;
+    }
+
+    .time-step.active .step-icon {
+        border-color: var(--primary);
+        color: white;
+        box-shadow: 0 0 15px var(--primary-glow);
+        background: var(--primary);
+    }
+
+    .time-step.done .step-icon {
+        border-color: var(--secondary);
+        color: var(--dark-bg);
+        background: var(--secondary);
+        box-shadow: 0 0 15px var(--secondary-glow);
+    }
+
+    .step-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #707090;
+    }
+
+    .time-step.active .step-label { color: white; }
+
+    /* Cards */
+    .wizard-card {
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 1.5rem;
+        padding: 3rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        display: none;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    .wizard-card.active { display: block; }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form & Input Elements */
+    .field-label {
+        display: block;
+        color: #cbd5e1;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+    }
+
+    .form-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    .form-input:focus {
+        border-color: var(--primary);
+        outline: none;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Upload Zones */
+    .upload-zone {
+        border: 2px dashed rgba(255, 255, 255, 0.15);
+        border-radius: 1.5rem;
+        padding: 4rem;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.02);
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-bottom: 2rem;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--primary);
+        background: rgba(193, 18, 31, 0.08);
+    }
+
+    .upload-zone i {
+        font-size: 3.5rem;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Split View for Scan */
+    .scan-split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .scan-preview {
+        position: relative;
+        background: #000;
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 1px solid var(--glass-border);
+        aspect-ratio: 4 / 3;
+    }
+
+    .scan-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* Scanner Animation Overlay */
+    .scanner-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    .scanner-overlay.active { opacity: 1; pointer-events: all; }
+
+    .scan-line {
+        position: absolute;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(to bottom, transparent, var(--secondary), transparent);
+        box-shadow: 0 0 15px var(--secondary);
+        top: 0;
+        animation: scanLoop 2.5s infinite linear;
+    }
+
+    @keyframes scanLoop {
+        0% { top: 0%; }
+        50% { top: 100%; }
+        100% { top: 0%; }
+    }
+
+    /* Buttons */
+    .btn-wrap { display: flex; gap: 1rem; margin-top: 2.5rem; }
+
+    .nav-btn {
+        padding: 1rem 2.5rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 1px solid transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        border: 2px solid var(--secondary);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px var(--primary-glow);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border: 1px solid var(--glass-border);
+    }
+
+    /* Prediction Circle */
+    .predict-circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--primary), #780000);
+        margin: 0 auto 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: white;
+        border: 8px solid var(--secondary);
+        box-shadow: 0 0 40px var(--primary-glow);
+        text-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    }
+
+    select option {
+        background: #1a1b26;
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .scan-split { grid-template-columns: 1fr; }
+        .timeline { display: none; }
+    }
+</style>
+
+<div class="scanner-page">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="mb-10 text-center">
+            <h1 class="text-4xl font-extrabold text-white mb-2">Blood Eye <span style="color:var(--secondary)">AI Scanner</span></h1>
+            <p class="text-gray-400">Non-invasive blood grouping via retinal & scleral analysis</p>
+        </div>
+
+        <!-- Step Timeline -->
+        <div class="timeline">
+            <div class="time-step active" id="ts-1">
+                <div class="step-icon">1</div>
+                <div class="step-label">Patient</div>
+            </div>
+            <div class="time-step" id="ts-2">
+                <div class="step-icon">2</div>
+                <div class="step-label">Fundus Scan</div>
+            </div>
+            <div class="time-step" id="ts-3">
+                <div class="step-icon">3</div>
+                <div class="step-label">Sclera Scan</div>
+            </div>
+            <div class="time-step" id="ts-4">
+                <div class="step-icon">4</div>
+                <div class="step-label">Prediction</div>
+            </div>
+        </div>
+
+        <form id="full-scanner-form">
+            <!-- STEP 1: Patient Information -->
+            <div class="wizard-card active" id="card-1">
+                <h2 class="text-2xl font-bold mb-6 flex align-items-center">
+                    <i class="fas fa-user-circle mr-3 text-secondary"></i>Patient Information
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="field-label">Full Name</label>
+                        <input type="text" id="p-name" class="form-input" placeholder="e.g. John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Age</label>
+                        <input type="number" id="p-age" class="form-input" placeholder="e.g. 25">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Gender</label>
+                        <select id="p-gender" class="form-input">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-wrap">
+                    <button type="button" class="nav-btn btn-primary" onclick="nextStep(2)">
+                        Continue to Scan <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Fundus Scanning -->
+            <div class="wizard-card" id="card-2">
+                <h2 class="text-2xl font-bold mb-6 flex align-items-center">
+                    <i class="fas fa-eye mr-3 text-primary"></i>Retinal Fundus Analysis
+                </h2>
+                <div class="scan-split">
+                    <div>
+                        <div class="upload-zone" onclick="document.getElementById('fundus-file').click()">
+                            <input type="file" id="fundus-file" accept="image/*" class="hidden" onchange="previewImg(this, 'fundus-preview')">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3 class="text-lg font-bold text-white">Upload Fundus Image</h3>
+                            <p class="text-gray-400 mt-2">Click or drag & drop high-res retinal image</p>
+                        </div>
+                        <div id="fundus-status" class="text-sm font-semibold opacity-80"></div>
+                    </div>
+                    <div class="scan-preview">
+                        <img id="fundus-preview" src="{{ url_for('static', filename='img/fundus.png') }}" style="opacity:0.3">
+                        <div class="scanner-overlay" id="fundus-loader">
+                            <div class="scan-line"></div>
+                            <i class="fas fa-atom fa-spin text-4xl text-secondary mb-3"></i>
+                            <span class="font-bold text-white">AI Analysis in Progress...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-wrap">
+                    <button type="button" class="nav-btn btn-secondary" onclick="prevStep(1)">Back</button>
+                    <button type="button" class="nav-btn btn-primary" id="btn-scan-fundus" onclick="handleScan('fundus')">
+                        Process Image <i class="fas fa-microchip"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Sclera Scanning -->
+            <div class="wizard-card" id="card-3">
+                <h2 class="text-2xl font-bold mb-6 flex align-items-center">
+                    <i class="fas fa-eye-dropper mr-3 text-secondary"></i>Scleral Surface Analysis
+                </h2>
+                <div class="scan-split">
+                    <div>
+                        <div class="upload-zone" onclick="document.getElementById('sclera-file').click()">
+                            <input type="file" id="sclera-file" accept="image/*" class="hidden" onchange="previewImg(this, 'sclera-preview')">
+                            <i class="fas fa-camera-retro"></i>
+                            <h3 class="text-lg font-bold text-white">Upload Sclera Image</h3>
+                            <p class="text-gray-400 mt-2">Surface scan of the white of the eye</p>
+                        </div>
+                        <div id="sclera-status" class="text-sm font-semibold opacity-80"></div>
+                    </div>
+                    <div class="scan-preview">
+                        <img id="sclera-preview" src="{{ url_for('static', filename='img/sclera.png') }}" style="opacity:0.3">
+                        <div class="scanner-overlay" id="sclera-loader">
+                            <div class="scan-line"></div>
+                            <i class="fas fa-brain fa-spin text-4xl text-primary mb-3"></i>
+                            <span class="font-bold text-white">Extracting Features...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-wrap">
+                    <button type="button" class="nav-btn btn-secondary" onclick="prevStep(2)">Back</button>
+                    <button type="button" class="nav-btn btn-primary" id="btn-scan-sclera" onclick="handleScan('sclera')">
+                        Final Extraction <i class="fas fa-vials"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 4: Results -->
+            <div class="wizard-card" id="card-4">
+                <div class="text-center py-10">
+                    <div class="predict-circle" id="final-result">?</div>
+                    <h2 class="text-4xl font-black text-white mb-2">Analysis Complete</h2>
+                    <p class="text-secondary font-bold text-xl mb-8">Predicted Blood Group Result</p>
+                    
+                    <div class="grid grid-cols-2 gap-4 max-w-md mx-auto mb-10">
+                        <div class="p-4 bg-white/5 rounded-xl border border-white/10 text-left">
+                            <span class="text-gray-400 text-xs block uppercase mb-1">Patient</span>
+                            <span class="font-bold" id="res-name">-</span>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded-xl border border-white/10 text-left">
+                            <span class="text-gray-400 text-xs block uppercase mb-1">Status</span>
+                            <span class="text-green-400 font-bold"><i class="fas fa-check-circle mr-1"></i> Verified</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center gap-4">
+                        <a href="{{ url_for('home') }}" class="nav-btn btn-secondary">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                        <a href="{{ url_for('download_report') }}" class="nav-btn btn-primary">
+                            <i class="fas fa-file-pdf"></i> Download PDF Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+
+    function nextStep(step) {
+        if(step === 2) {
+            const name = document.getElementById('p-name').value;
+            const age = document.getElementById('p-age').value;
+            const gender = document.getElementById('p-gender').value;
+            if(!name || !age || !gender) {
+                alert("Please fill all patient details.");
+                return;
+            }
+            savePatient(name, age, gender);
+        }
+
+        document.getElementById(`card-${currentStep}`).classList.remove('active');
+        document.getElementById(`ts-${currentStep}`).classList.add('done');
+        currentStep = step;
+        document.getElementById(`card-${currentStep}`).classList.add('active');
+        document.getElementById(`ts-${currentStep}`).classList.add('active');
+    }
+
+    function prevStep(step) {
+        document.getElementById(`card-${currentStep}`).classList.remove('active');
+        document.getElementById(`ts-${currentStep}`).classList.remove('active');
+        currentStep = step;
+        document.getElementById(`card-${currentStep}`).classList.add('active');
+        document.getElementById(`ts-${currentStep}`).classList.remove('done');
+    }
+
+    function previewImg(input, targetId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const el = document.getElementById(targetId);
+                el.src = e.target.result;
+                el.style.opacity = '1';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function savePatient(name, age, gender) {
+        try {
+            const res = await fetch("{{ url_for('save_patient') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, age, gender })
+            });
+            const data = await res.json();
+            document.getElementById('res-name').textContent = name;
+        } catch (e) { console.error(e); }
+    }
+
+    async function handleScan(type) {
+        const fileInput = document.getElementById(`${type}-file`);
+        if (!fileInput.files.length) {
+            alert(`Please select a ${type} image first.`);
+            return;
+        }
+
+        const loader = document.getElementById(`${type}-loader`);
+        const status = document.getElementById(`${type}-status`);
+        const btn = document.getElementById(`btn-scan-${type}`);
+
+        loader.classList.add('active');
+        btn.disabled = true;
+        status.innerHTML = `<span class="text-secondary"><i class="fas fa-circle-notch fa-spin mr-2"></i>AI Processing...</span>`;
+
+        const fd = new FormData();
+        fd.append('image', fileInput.files[0]);
+
+        try {
+            const route = type === 'fundus' ? "{{ url_for('fundus_upload') }}" : "{{ url_for('sclera_upload') }}";
+            const res = await fetch(route, { method: 'POST', body: fd });
+            const data = await res.json();
+
+            if (data.success) {
+                status.innerHTML = `<span class="text-green-400"><i class="fas fa-check-circle mr-2"></i>Features Extracted!</span>`;
+                if(data.processed_image_path) {
+                    document.getElementById(`${type}-preview`).src = data.processed_image_path;
+                }
+                
+                setTimeout(() => {
+                    loader.classList.remove('active');
+                    if(type === 'fundus') nextStep(3);
+                    else runFinalPrediction();
+                }, 1500);
+            } else {
+                throw new Error(data.error || "Processing failed");
+            }
+        } catch (e) {
+            loader.classList.remove('active');
+            btn.disabled = false;
+            status.innerHTML = `<span class="text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>${e.message}</span>`;
+        }
+    }
+
+    async function runFinalPrediction() {
+        nextStep(4);
+        const circle = document.getElementById('final-result');
+        circle.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+        
+        try {
+            const res = await fetch("{{ url_for('predict_ajax') }}");
+            const data = await res.json();
+            if (data.success) {
+                circle.innerText = data.predicted_blood_group;
+            } else {
+                circle.innerHTML = `<i class="fas fa-times text-red-400"></i>`;
+                alert(data.message || "Prediction error");
+            }
+        } catch (e) {
+            circle.innerHTML = `<i class="fas fa-times text-red-400"></i>`;
+        }
+    }
+</script>
+
+{% endblock %}
